@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from os import listdir
 from os.path import isfile, join
 
-reduced_array_size = 15000
+reduced_array_size = 150000
 
 """MP3 to numpy array"""
 
@@ -140,23 +140,15 @@ def compare_two_songs(songfile1, songfile2):
 
     sr, x = read('songs/' + songfile1)
     step = x.size / reduced_array_size
-    song1 = x[::math.floor(step)]
+    song1 = x[::math.floor(step)].flatten()
     song1_slice = song1[0:reduced_array_size]
-    median1 = np.median(song1_slice)
-    # Assign the median to the zero elements
-    song1_slice[song1_slice == 0] = median1
 
     sr, x = read('songs/' + songfile2)
     step = x.size / reduced_array_size
-    song2 = x[::math.floor(step)]
+    song2 = x[::math.floor(step)].flatten()
     song2_slice = song2[0:reduced_array_size]
-    median2 = np.median(song2_slice)
-    # Assign the median to the zero elements
-    song2_slice[song2_slice == 0] = median2
 
-    print(song1_slice)
-
-    cosine_similartiy_2_songs = cosine_similarity(song1_slice, song2_slice)
+    cosine_similartiy_2_songs = cosine_similarity([song1_slice], [song2_slice])
     #
     # print("Cosine similarity:")
     # print(cosine_similartiy_2_songs)
