@@ -8,8 +8,9 @@ import math
 from sklearn.metrics.pairwise import cosine_similarity
 from os import listdir
 from os.path import isfile, join
+from scipy.spatial.distance import cdist
 
-reduced_array_size = 150000
+reduced_array_size = 2000
 
 """MP3 to numpy array"""
 
@@ -140,23 +141,50 @@ def compare_two_songs(songfile1, songfile2):
 
     sr, x = read('songs/' + songfile1)
     step = x.size / reduced_array_size
-    song1 = x[::math.floor(step)].flatten()
+    song1 = x[::math.floor(step)]
     song1_slice = song1[0:reduced_array_size]
+    median1 = np.median(song1_slice)
+    song1_slice[song1_slice == 0] = median1
 
     sr, x = read('songs/' + songfile2)
-    step = x.size / reduced_array_size
-    song2 = x[::math.floor(step)].flatten()
-    song2_slice = song2[0:reduced_array_size]
 
-    cosine_similartiy_2_songs = cosine_similarity([song1_slice], [song2_slice])
+    step = x.size / reduced_array_size
+    song2 = x[::math.floor(step)]
+    song2_slice = song2[0:reduced_array_size]
+    median2 = np.median(song2_slice)
+    song2_slice[song2_slice == 0] = median2
+
+    similarity  = cosine_similarity(song1_slice, song2_slice)
+    mahalanobis = cdist(song1_slice, song2_slice, 'mahalanobis')
+
+    print("Song 1 wiht itself")
+    print(np.average(cdist(song1_slice, song1_slice, 'mahalanobis')))
+    print("Song 2 wiht itself")
+    print(np.average(cdist(song2_slice, song2_slice, 'mahalanobis')))
+
+
+    euclidian = np.linalg.norm(song1_slice - song2_slice)
+    print ("shape")
+    # print(song1_slice.shape)
+    #
+    # i, j, k = song1_slice.shape
+    #
+    # song1_slice = song1_slice.reshape(i, j * k).T
+    # i, j, k = song1_slice.shape
+    #
+    # song2_slice = song2_slice.reshape(i, j * k).T
+    # similarity = cdist([song1_slice],  [song2_slice], 'mahalanobis')
     #
     # print("Cosine similarity:")
     # print(cosine_similartiy_2_songs)
-    if (cosine_similartiy_2_songs[0][0] > 0):
+    if (similarity[0][0] > 0):
         print("The songs: " + str(songfile1) + " " + str(songfile2) + " " + " are similar")
     else:
         print("The songs: " + str(songfile1) + " " + str(songfile2) + " " + " are not similar")
-    return cosine_similartiy_2_songs[0][0]
+    return np.average(mahalanobis)
+
+
+
 
 #similarity = sklearn.metrics.pairwise.cosine_similarity()
 #print(similarity)
@@ -187,7 +215,9 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
+
     find_most_simlar_song()
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
